@@ -13,6 +13,7 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     company = relationship("Company", back_populates="owner", uselist=False)
     social_accounts = relationship("SocialMediaAccount", back_populates="user")

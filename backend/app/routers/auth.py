@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ..database import get_db
 from ..schemas import User, UserCreate, Token
@@ -32,7 +32,13 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+
+    # Получаем пользователя со всеми связями
+    user_with_relations = db.query(UserModel).options(
+        joinedload(UserModel.company)
+    ).filter(UserModel.id == db_user.id).first()
+
+    return user_with_relations
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
@@ -55,5 +61,10 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me", response_model=User)
-async def read_users_me(current_user: UserModel = Depends(get_current_active_user)):
-    return current_user
+async def read_users_me(current_user: UserModel = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    # Получаем объект пользователя со всеми связями
+    user_with_company = db.query(UserModel).options(
+        joinedload(UserModel.company)
+    ).filter(UserModel.id == current_user.id).first()
+
+    return user_with_company

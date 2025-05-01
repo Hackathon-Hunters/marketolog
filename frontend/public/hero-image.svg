@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <!-- Фон с градиентом -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#a29bfe;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#grad1)" />
+
+  <!-- AI мозг / робот -->
+  <g transform="translate(400, 280)">
+    <!-- Голова робота -->
+    <rect x="-100" y="-120" width="200" height="180" rx="20" ry="20" fill="#6c5ce7" stroke="#4834d4" stroke-width="3" />
+    
+    <!-- Экран лица -->
+    <rect x="-80" y="-100" width="160" height="100" rx="10" ry="10" fill="#a29bfe" stroke="#4834d4" stroke-width="2" />
+    
+    <!-- Глаза -->
+    <circle cx="-40" cy="-50" r="15" fill="#4834d4" />
+    <circle cx="40" cy="-50" r="15" fill="#4834d4" />
+    
+    <!-- Блики в глазах -->
+    <circle cx="-35" cy="-55" r="5" fill="white" />
+    <circle cx="45" cy="-55" r="5" fill="white" />
+    
+    <!-- Рот / Интерфейс -->
+    <rect x="-50" y="-10" width="100" height="8" rx="4" ry="4" fill="#4834d4" />
+    
+    <!-- Антенны -->
+    <line x1="0" y1="-120" x2="0" y2="-150" stroke="#4834d4" stroke-width="3" />
+    <circle cx="0" cy="-150" r="8" fill="#fd79a8" />
+    
+    <!-- Схематичные элементы мозга -->
+    <g transform="translate(0, -75)" stroke="#4834d4" stroke-width="1" fill="none">
+      <path d="M-60,0 C-40,20 40,20 60,0" />
+      <path d="M-40,-10 C-20,10 20,10 40,-10" />
+      <path d="M-20,-20 C0,0 0,0 20,-20" />
+    </g>
+  </g>
+  
+  <!-- Маркетинговые иконки и элементы вокруг -->
+  
+  <!-- Социальные сети -->
+  <g transform="translate(200, 180)">
+    <circle cx="0" cy="0" r="40" fill="#0984e3" opacity="0.7" />
+    <text x="0" y="8" font-family="Arial" font-size="40" fill="white" text-anchor="middle">f</text>
+  </g>
+  
+  <g transform="translate(600, 180)">
+    <circle cx="0" cy="0" r="40" fill="#fd79a8" opacity="0.7" />
+    <text x="0" y="10" font-family="Arial" font-size="35" fill="white" text-anchor="middle">📷</text>
+  </g>
+  
+  <!-- Хэштеги -->
+  <g transform="translate(150, 400)">
+    <rect x="-60" y="-20" width="120" height="40" rx="20" ry="20" fill="#00b894" opacity="0.7" />
+    <text x="0" y="8" font-family="Arial" font-size="20" fill="white" text-anchor="middle">#маркетинг</text>
+  </g>
+  
+  <g transform="translate(650, 400)">
+    <rect x="-60" y="-20" width="120" height="40" rx="20" ry="20" fill="#00b894" opacity="0.7" />
+    <text x="0" y="8" font-family="Arial" font-size="20" fill="white" text-anchor="middle">#продажи</text>
+  </g>
+  
+  <!-- Данные и графики -->
+  <g transform="translate(250, 500)">
+    <rect x="-40" y="-40" width="80" height="80" rx="10" ry="10" fill="#74b9ff" opacity="0.7" />
+    <line x1="-30" y1="30" x2="-10" y2="0" stroke="white" stroke-width="3" />
+    <line x1="-10" y1="0" x2="10" y2="20" stroke="white" stroke-width="3" />
+    <line x1="10" y1="20" x2="30" y2="-20" stroke="white" stroke-width="3" />
+  </g>
+  
+  <g transform="translate(550, 500)">
+    <rect x="-40" y="-40" width="80" height="80" rx="10" ry="10" fill="#74b9ff" opacity="0.7" />
+    <circle cx="-15" cy="0" r="15" fill="none" stroke="white" stroke-width="3" />
+    <path d="M-15,0 L-15,-15 A15,15 0 0,1 0,0 Z" fill="white" />
+    <circle cx="15" cy="0" r="15" fill="none" stroke="white" stroke-width="3" />
+    <path d="M15,0 L15,-15 A15,15 0 0,1 30,0 Z" fill="white" />
+  </g>
+  
+  <!-- Соединительные линии -->
+  <g stroke="#a29bfe" stroke-width="2" stroke-dasharray="5,5" fill="none">
+    <path d="M300,180 C350,200 350,250 400,250" />
+    <path d="M500,180 C450,200 450,250 400,250" />
+    <path d="M250,350 C300,300 350,280 400,280" />
+    <path d="M550,350 C500,300 450,280 400,280" />
+    <path d="M300,450 C350,400 380,350 400,310" />
+    <path d="M500,450 C450,400 420,350 400,310" />
+  </g>
+  
+  <!-- Кольца вокруг робота -->
+  <g transform="translate(400, 280)" fill="none">
+    <circle cx="0" cy="0" r="220" stroke="#a29bfe" stroke-width="2" stroke-dasharray="10,10" opacity="0.5" />
+    <circle cx="0" cy="0" r="250" stroke="#6c5ce7" stroke-width="2" stroke-dasharray="10,15" opacity="0.3" />
+  </g>
+  
+  <!-- Звездочки/искры AI -->
+  <g fill="#fd79a8">
+    <circle cx="320" cy="120" r="3" />
+    <circle cx="480" cy="120" r="3" />
+    <circle cx="350" cy="200" r="3" />
+    <circle cx="450" cy="200" r="3" />
+    <circle cx="300" cy="250" r="3" />
+    <circle cx="500" cy="250" r="3" />
+    <circle cx="380" cy="150" r="3" />
+    <circle cx="420" cy="150" r="3" />
+  </g>
+</svg> 
