@@ -1,39 +1,45 @@
 <template>
-  <div class="login-view">
-    <div class="form-container">
-      <h1>Вход</h1>
-      <form @submit.prevent="login">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
+  <div class="container mx-auto max-w-md py-12">
+    <div class="rounded-lg border bg-slate-50 p-8 shadow-md">
+      <h1 class="mb-6 text-2xl font-bold">Вход в аккаунт</h1>
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <FormItem>
+          <Label for="email">Email</Label>
+          <Input
             id="email"
-            v-model="email"
+            v-model="form.email"
             type="email"
+            placeholder="Введите email"
             required
-            placeholder="your@email.com"
           />
-        </div>
-        
-        <div class="form-group">
-          <label for="password">Пароль</label>
-          <input
+          <FormMessage :message="errors.email" />
+        </FormItem>
+
+        <FormItem>
+          <Label for="password">Пароль</Label>
+          <Input
             id="password"
-            v-model="password"
+            v-model="form.password"
             type="password"
+            placeholder="Введите пароль"
             required
-            placeholder="********"
           />
+          <FormMessage :message="errors.password" />
+        </FormItem>
+
+        <div v-if="error" class="rounded-md bg-red-50 p-3 text-sm text-red-500">
+          {{ error }}
         </div>
-        
-        <button type="submit" class="btn primary" :disabled="isLoading">
-          {{ isLoading ? 'Загрузка...' : 'Войти' }}
-        </button>
-        
-        <div class="error" v-if="error">{{ error }}</div>
-        
-        <div class="form-footer">
-          <span>Нет аккаунта?</span>
-          <router-link to="/register">Зарегистрироваться</router-link>
+
+        <Button type="submit" class="w-full" :disabled="isLoading">
+          {{ isLoading ? 'Вход...' : 'Войти' }}
+        </Button>
+
+        <div class="text-center text-sm">
+          Нет аккаунта?
+          <router-link to="/register" class="text-blue-600 hover:underline">
+            Зарегистрироваться
+          </router-link>
         </div>
       </form>
     </div>
@@ -41,26 +47,77 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '../services/api'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Label } from '../components/ui/label'
+import { FormItem, FormMessage } from '../components/ui/form'
 
 const router = useRouter()
-const email = ref('')
-const password = ref('')
-const error = ref('')
 const isLoading = ref(false)
+const error = ref('')
 
-const login = async () => {
-  error.value = ''
+const form = reactive({
+  email: '',
+  password: ''
+})
+
+const errors = reactive({
+  email: '',
+  password: ''
+})
+
+const validateForm = () => {
+  let isValid = true
+  
+  // Сбросить все ошибки
+  errors.email = ''
+  errors.password = ''
+  
+  // Валидация email
+  if (!form.email.trim()) {
+    errors.email = 'Email обязателен'
+    isValid = false
+  } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+    errors.email = 'Введите корректный email'
+    isValid = false
+  }
+  
+  // Валидация пароля
+  if (!form.password.trim()) {
+    errors.password = 'Пароль обязателен'
+    isValid = false
+  }
+  
+  return isValid
+}
+
+const handleSubmit = async () => {
+  // Проверяем валидность формы
+  if (!validateForm()) return
+  
   isLoading.value = true
+  error.value = ''
   
   try {
-    // Здесь будет API запрос на вход
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const response = await authApi.login({
+      email: form.email.trim(),
+      password: form.password
+    })
+    
+    console.log('Auth response:', response.data)
+    
+    // Сохраняем токен в localStorage
+    // Бэкенд возвращает access_token, а не token
+    localStorage.setItem('token', response.data.access_token)
+    
+    // Перенаправляем на страницу брифа
     router.push('/brief')
   } catch (err) {
-    error.value = err.message || 'Ошибка при входе'
+    console.error('Login error:', err)
+    error.value = err.response?.data?.detail || 'Неверный email или пароль'
   } finally {
     isLoading.value = false
   }

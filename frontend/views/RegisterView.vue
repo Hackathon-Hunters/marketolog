@@ -1,50 +1,57 @@
 <template>
-  <div class="register-view">
-    <div class="form-container">
-      <h1>Регистрация</h1>
-      <form @submit.prevent="register">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
+  <div class="container mx-auto max-w-md py-12">
+    <div class="rounded-lg border bg-slate-50 p-8 shadow-md">
+      <h1 class="mb-6 text-2xl font-bold">Регистрация</h1>
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <FormItem>
+          <Label for="email">Email</Label>
+          <Input
             id="email"
-            v-model="email"
+            v-model="form.email"
             type="email"
+            placeholder="Введите email"
             required
-            placeholder="your@email.com"
           />
-        </div>
-        
-        <div class="form-group">
-          <label for="password">Пароль</label>
-          <input
+          <FormMessage :message="errors.email" />
+        </FormItem>
+
+        <FormItem>
+          <Label for="password">Пароль</Label>
+          <Input
             id="password"
-            v-model="password"
+            v-model="form.password"
             type="password"
+            placeholder="Введите пароль"
             required
-            placeholder="********"
           />
-        </div>
-        
-        <div class="form-group">
-          <label for="confirm_password">Подтверждение пароля</label>
-          <input
-            id="confirm_password"
-            v-model="confirmPassword"
+          <FormMessage :message="errors.password" />
+        </FormItem>
+
+        <FormItem>
+          <Label for="passwordConfirm">Подтверждение пароля</Label>
+          <Input
+            id="passwordConfirm"
+            v-model="form.passwordConfirm"
             type="password"
+            placeholder="Повторите пароль"
             required
-            placeholder="********"
           />
+          <FormMessage :message="errors.passwordConfirm" />
+        </FormItem>
+
+        <div v-if="error" class="rounded-md bg-red-50 p-3 text-sm text-red-500">
+          {{ error }}
         </div>
-        
-        <button type="submit" class="btn primary" :disabled="isLoading">
-          {{ isLoading ? 'Загрузка...' : 'Зарегистрироваться' }}
-        </button>
-        
-        <div class="error" v-if="error">{{ error }}</div>
-        
-        <div class="form-footer">
-          <span>Уже есть аккаунт?</span>
-          <router-link to="/login">Войти</router-link>
+
+        <Button type="submit" class="w-full" :disabled="isLoading">
+          {{ isLoading ? 'Регистрация...' : 'Зарегистрироваться' }}
+        </Button>
+
+        <div class="text-center text-sm">
+          Уже есть аккаунт?
+          <router-link to="/login" class="text-blue-600 hover:underline">
+            Войти
+          </router-link>
         </div>
       </form>
     </div>
@@ -52,113 +59,86 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { authApi } from '../services/api'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Label } from '../components/ui/label'
+import { FormItem, FormMessage } from '../components/ui/form'
 
 const router = useRouter()
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const error = ref('')
 const isLoading = ref(false)
+const error = ref('')
 
-const register = async () => {
-  error.value = ''
+const form = reactive({
+  email: '',
+  password: '',
+  passwordConfirm: ''
+})
+
+const errors = reactive({
+  email: '',
+  password: '',
+  passwordConfirm: ''
+})
+
+const validateForm = () => {
+  let isValid = true
   
-  if (password.value !== confirmPassword.value) {
-    error.value = 'Пароли не совпадают'
-    return
+  // Сбросить все ошибки
+  errors.email = ''
+  errors.password = ''
+  errors.passwordConfirm = ''
+  
+  // Валидация email
+  if (!form.email) {
+    errors.email = 'Email обязателен'
+    isValid = false
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    errors.email = 'Введите корректный email'
+    isValid = false
   }
   
+  // Валидация пароля
+  if (!form.password) {
+    errors.password = 'Пароль обязателен'
+    isValid = false
+  } else if (form.password.length < 6) {
+    errors.password = 'Пароль должен быть не менее 6 символов'
+    isValid = false
+  }
+  
+  // Валидация подтверждения пароля
+  if (form.password !== form.passwordConfirm) {
+    errors.passwordConfirm = 'Пароли не совпадают'
+    isValid = false
+  }
+  
+  return isValid
+}
+
+const handleSubmit = async () => {
+  if (!validateForm()) return
+  
   isLoading.value = true
+  error.value = ''
   
   try {
-    // Здесь будет API запрос на регистрацию
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const response = await authApi.register({
+      email: form.email,
+      password: form.password
+    })
+    
+    // Сохраняем токен в localStorage
+    localStorage.setItem('token', response.data.token)
+    
+    // Перенаправляем на страницу брифа
     router.push('/brief')
   } catch (err) {
-    error.value = err.message || 'Ошибка при регистрации'
+    error.value = err.response?.data?.message || 'Ошибка при регистрации'
   } finally {
     isLoading.value = false
   }
 }
-</script>
-
-<style scoped>
-.register-view {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 2rem;
-}
-
-.form-container {
-  width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  background-color: white;
-}
-
-h1 {
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.btn {
-  width: 100%;
-  padding: 0.75rem;
-  margin-top: 1rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.primary {
-  background-color: #3498db;
-  color: white;
-}
-
-.primary:disabled {
-  background-color: #95a5a6;
-  cursor: not-allowed;
-}
-
-.error {
-  color: #e74c3c;
-  margin-top: 1rem;
-  text-align: center;
-}
-
-.form-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-}
-
-.form-footer a {
-  margin-left: 0.5rem;
-  color: #3498db;
-  text-decoration: none;
-}
-</style> 
+</script> 

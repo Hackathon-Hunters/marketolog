@@ -9,21 +9,26 @@
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix ."
   },
   "dependencies": {
-    "vue": "^3.3.4",
-    "vue-router": "^4.2.4",
-    "pinia": "^2.1.6",
+    "@vueuse/core": "^10.3.0",
     "axios": "^1.5.0",
-    "@vueuse/core": "^10.3.0"
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-vue-next": "^0.503.0",
+    "pinia": "^2.1.6",
+    "shadcn-vue": "^2.1.0",
+    "tailwind-merge": "^3.2.0",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^4.3.4",
-    "vite": "^4.4.9",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "autoprefixer": "^10.4.15",
     "eslint": "^8.48.0",
     "eslint-plugin-vue": "^9.17.0",
+    "postcss": "^8.4.29",
     "prettier": "^3.0.3",
     "sass": "^1.66.1",
     "tailwindcss": "^3.3.3",
-    "postcss": "^8.4.29",
-    "autoprefixer": "^10.4.15"
+    "vite": "^6.3.4"
   }
 }

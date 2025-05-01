@@ -32,7 +32,18 @@ api.interceptors.response.use(
 
 export const authApi = {
   register: (data) => api.post('/auth/register', data),
-  login: (data) => api.post('/auth/login', data),
+  login: (data) => {
+    // В FastAPI с OAuth2PasswordRequestForm ожидаются поля username и password
+    const formData = new URLSearchParams();
+    formData.append('username', data.email); // Email используется как username
+    formData.append('password', data.password);
+    
+    return api.post('/auth/login', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+  },
   getCurrentUser: () => api.get('/auth/me')
 }
 
