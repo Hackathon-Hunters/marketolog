@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Text, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import datetime
@@ -10,9 +10,11 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
+    username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     company = relationship("Company", back_populates="owner", uselist=False)
     social_accounts = relationship("SocialMediaAccount", back_populates="user")
@@ -55,14 +57,26 @@ class Post(Base):
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, index=True)
-    type = Column(String)  # story, feed, reels - потом вынесем в обдельную таблицу
-    content = Column(Text)
-    hashtags = Column(Text, nullable=True)
-    image_url = Column(String, nullable=True)
-    is_published = Column(Boolean, default=False)
-    published_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"))
-
-    user = relationship("User", back_populates="posts")
+    company_name = Column(String)
+    business_type = Column(String)
+    region = Column(String)
+    language = Column(String)
+    
+    # Данные поста
+    title = Column(String)
+    description = Column(Text)
+    benefits = Column(JSON)  # Список преимуществ
+    hashtags = Column(JSON)  # Список хештегов
+    image_prompt = Column(Text)
+    image_base64 = Column(Text)  # Изображение в base64
+    
+    # Метаданные
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    is_published = Column(Boolean, default=False)
+    published_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Связи
+    user = relationship("User", back_populates="posts") 
 

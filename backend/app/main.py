@@ -4,8 +4,8 @@ import subprocess
 import os
 from contextlib import asynccontextmanager
 
-from .database import engine, Base
-from .routers import auth, company
+from backend.app.database import engine, Base
+from backend.app.routers import auth, company, chatgpt_api, create_post
 
 # Удаляем создание таблиц через SQLAlchemy - теперь будем использовать миграции
 # Base.metadata.create_all(bind=engine)
@@ -34,6 +34,8 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(chatgpt_api.router)
+app.include_router(create_post.router)
 app.include_router(company.router)
 
 @app.get("/")
