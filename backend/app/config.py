@@ -10,5 +10,6 @@ class Settings(BaseSettings):
     algorithm: str = Field(default="HS256")
     access_token_expire_minutes: int = Field(default=30)
     database_url: str = Field(default="sqlite:///./app.db")
+    openai_api_key: str = Field(default="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") 
 
 settings = Settings() 

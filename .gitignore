@@ -20,6 +20,7 @@ var/
 .installed.cfg
 *.egg
 venv/
+.venv/
 .env
 
 # Database
@@ -60,3 +61,6 @@ Thumbs.db
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
+
+### Логи
+*.log
