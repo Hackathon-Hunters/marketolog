@@ -7,8 +7,6 @@ import openai
 import logging
 import json
 from datetime import datetime
-import base64
-import requests
 
 from ..utils.auth import get_current_active_user
 from ..models.models import User as UserModel
@@ -54,7 +52,6 @@ class IdeaGenerationRequest(BaseModel):
     company_name: str = Field(..., description="Название компании")
     business_type: str = Field(..., description="Род деятельности компании")
     region: str = Field(..., description="Регион деятельности")
-    language: str = Field(..., description="Язык для перевода")
     model: str = Field(default="gpt-3.5-turbo", description="Модель GPT")
     temperature: float = Field(default=0.7, ge=0, le=2, description="Температура генерации")
 
@@ -62,9 +59,6 @@ class IdeaResponse(BaseModel):
     title: str = Field(..., description="Название идеи")
     description: str = Field(..., description="Описание идеи")
     benefits: List[str] = Field(..., description="Преимущества идеи")
-    hashtags: List[str] = Field(..., description="Хештеги для соц. сетей")
-    image_prompt: str = Field(..., description="Промпт для генерации изображения")
-    image_base64: Optional[str] = Field(None, description="Изображение в формате base64")
 
 class IdeasGenerationResponse(BaseModel):
     ideas: List[IdeaResponse] = Field(..., description="Список идей")
@@ -97,98 +91,43 @@ def log_error(user_id: int, error: Exception):
     }
     logger.error(f"ChatGPT Error: {json.dumps(log_data, ensure_ascii=False)}")
 
-async def generate_image(prompt: str) -> str:
-    """Генерация изображения через DALL-E"""
-    try:
-        response = client.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            size="720x720",
-            quality="standard",
-            n=1,
-        )
-        image_url = response.data[0].url
-        
-        # Скачиваем изображение и конвертируем в base64
-        image_response = requests.get(image_url)
-        image_response.raise_for_status()
-        return base64.b64encode(image_response.content).decode('utf-8')
-    except Exception as e:
-        logger.error(f"Error generating image: {str(e)}")
-        return None
-
-@router.post("/generate-ideas", response_model=IdeasGenerationResponse)
-async def generate_ideas(
-    idea_request: IdeaGenerationRequest,
+@router.post("/chat")
+async def chat_with_gpt(
+    chat_request: ChatRequest,
     current_user: UserModel = Depends(get_current_active_user)
 ):
     try:
         # Логируем входящий запрос
-        log_request(current_user.id, idea_request.dict())
+        log_request(current_user.id, chat_request.dict())
         
-        # Создаем промпт для генерации идей
-        prompt_template = f"""
-        Ты - профессиональный бизнес-консультант по маркетингу. 
+        # Проверяем наличие сообщений
+        if not chat_request.messages:
+            raise HTTPException(status_code=400, detail="Messages list cannot be empty")
         
-        Компания: {idea_request.company_name}
-        Род деятельности: {idea_request.business_type}
-        Регион: {idea_request.region}
-        Язык: {idea_request.language}
+        # Проверяем валидность ролей
+        valid_roles = {"system", "user", "assistant"}
+        for msg in chat_request.messages:
+            if msg.role not in valid_roles:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Invalid role: {msg.role}. Must be one of: {', '.join(valid_roles)}"
+                )
         
-        Сгенерируй ТОП-3 маркетинговые идеи для этой компании, которые помогут повысить узнаваемость бренда и привлечь новых клиентов.
-        
-        Для каждой идеи также:
-        1. Добавь 5-7 релевантных хештегов для соц. сетей
-        2. Создай промпт для генерации изображения, которое будет иллюстрировать идею
-        
-        Твой ответ должен быть ТОЛЬКО в формате JSON со следующей структурой:
-        {{
-            "ideas": [
-                {{
-                    "title": "Название идеи",
-                    "description": "Подробное описание идеи",
-                    "benefits": ["Преимущество 1", "Преимущество 2", "Преимущество 3"],
-                    "hashtags": ["#хештег1", "#хештег2", ...],
-                    "image_prompt": "Детальное описание изображения для генерации"
-                }},
-                ... (всего 3 идеи)
-            ]
-        }}
-        
-        НЕ ДОБАВЛЯЙ никаких пояснений или дополнительного текста вне этой JSON структуры.
-        """
-        
-        # Отправляем запрос к ChatGPT
+        # Создаем запрос к ChatGPT
         response = client.chat.completions.create(
-            model=idea_request.model,
-            messages=[{"role": "user", "content": prompt_template}],
-            temperature=idea_request.temperature,
-            response_format={"type": "json_object"}
+            model=chat_request.model,
+            messages=[msg.dict() for msg in chat_request.messages],
+            temperature=chat_request.temperature,
+            max_tokens=chat_request.max_tokens
         )
         
-        # Получаем ответ и преобразуем его в JSON
-        response_content = response.choices[0].message.content
-        ideas_data = json.loads(response_content)
-        
-        # Генерируем изображения для каждой идеи
-        for idea in ideas_data["ideas"]:
-            image_base64 = await generate_image(idea["image_prompt"])
-            idea["image_base64"] = image_base64
-        
-        # Формируем структурированный ответ
-        response_data = IdeasGenerationResponse(**ideas_data)
+        response_data = {"response": response.choices[0].message.content}
         
         # Логируем успешный ответ
-        log_response(current_user.id, ideas_data)
+        log_response(current_user.id, response_data)
         
         return response_data
         
-    except json.JSONDecodeError as e:
-        log_error(current_user.id, e)
-        raise HTTPException(
-            status_code=500,
-            detail="Не удалось распарсить ответ от API в формате JSON"
-        )
     except OpenAIError as e:
         # Логируем ошибку API
         log_error(current_user.id, e)

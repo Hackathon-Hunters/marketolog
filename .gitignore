@@ -18,9 +18,14 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+<<<<<<< HEAD
 venv/
 .venv
 venv
+=======
+venv
+.venv
+>>>>>>> c7ea7aa78e60df629af5e2b2c44ae2a05600f96e
 .env
 .env.gpt
 
