@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from openai import ChatCompletion, OpenAIError
+from openai import OpenAI, OpenAIError
 import openai
 import logging
 import json
@@ -29,7 +29,14 @@ router = APIRouter(
     tags=["ai-requests"],
 )
 
-openai.api_key = settings.openai_api_key
+# Проверка наличия API ключа
+if not settings.openai_api_key:
+    logger.error("OpenAI API key is not set! Please check .env.gpt file")
+    raise ValueError("OpenAI API key is not set! Please check .env.gpt file")
+
+# Инициализация клиента OpenAI
+client = OpenAI(api_key=settings.openai_api_key)
+logger.info(f"OpenAI API key loaded: {settings.openai_api_key[:8]}...")
 
 class Message(BaseModel):
     role: str = Field(..., description="Роль отправителя (user/assistant/system)")
@@ -78,7 +85,21 @@ async def chat_with_gpt(
         # Логируем входящий запрос
         log_request(current_user.id, chat_request.dict())
         
-        response = ChatCompletion.create(
+        # Проверяем наличие сообщений
+        if not chat_request.messages:
+            raise HTTPException(status_code=400, detail="Messages list cannot be empty")
+        
+        # Проверяем валидность ролей
+        valid_roles = {"system", "user", "assistant"}
+        for msg in chat_request.messages:
+            if msg.role not in valid_roles:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Invalid role: {msg.role}. Must be one of: {', '.join(valid_roles)}"
+                )
+        
+        # Создаем запрос к ChatGPT
+        response = client.chat.completions.create(
             model=chat_request.model,
             messages=[msg.dict() for msg in chat_request.messages],
             temperature=chat_request.temperature,
@@ -95,6 +116,24 @@ async def chat_with_gpt(
     except OpenAIError as e:
         # Логируем ошибку API
         log_error(current_user.id, e)
+        error_message = str(e)
+        
+        # Обработка различных типов ошибок
+        if "API key" in error_message:
+            raise HTTPException(
+                status_code=500,
+                detail="Invalid OpenAI API key. Please check your .env.gpt file"
+            )
+        elif "insufficient_quota" in error_message:
+            raise HTTPException(
+                status_code=429,
+                detail="OpenAI API quota exceeded. Please check your billing details at https://platform.openai.com/account/billing"
+            )
+        elif "rate_limit" in error_message:
+            raise HTTPException(
+                status_code=429,
+                detail="Rate limit exceeded. Please try again later"
+            )
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         # Логируем неожиданные ошибки

@@ -22,6 +22,7 @@ var/
 venv/
 .venv
 .env
+.env.gpt
 
 # Database
 *.db
