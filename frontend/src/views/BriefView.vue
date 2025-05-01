@@ -13,7 +13,7 @@
             </div>
             
             <div v-else>
-              <p class="text-lg mb-8">Добро пожаловать, {{ user.email }}! Заполните информацию о вашей компании.</p>
+              <p class="text-lg mb-8">Добро пожаловать, {{ userStore.currentUser.email }}! Заполните информацию о вашей компании.</p>
               <Button @click="logout" variant="outline" class="mt-4">Выйти из аккаунта</Button>
             </div>
           </div>
@@ -30,10 +30,10 @@ import { authApi } from '../services/api'
 import { Button } from '../components/ui/button'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar.vue";
+import { userStore } from '../store'
 
 const router = useRouter()
 const isLoading = ref(true)
-const user = ref({})
 const error = ref('')
 
 const fetchCurrentUser = async () => {
@@ -41,13 +41,14 @@ const fetchCurrentUser = async () => {
   
   try {
     const response = await authApi.getCurrentUser()
+    userStore.setUser(response.data)
     if(response.data.company) {
-
+      // Логика для обработки данных компании
     }
-    user.value = response.data
   } catch (err) {
     error.value = 'Ошибка при загрузке данных пользователя'
     localStorage.removeItem('token')
+    userStore.clearUser()
     router.push('/login')
   } finally {
     isLoading.value = false
@@ -56,6 +57,7 @@ const fetchCurrentUser = async () => {
 
 const logout = () => {
   localStorage.removeItem('token')
+  userStore.clearUser()
   router.push('/login')
 }
 

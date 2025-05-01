@@ -62,10 +62,11 @@ export const authApi = {
 }
 
 export const companyApi = {
-  create: (data: CompanyData) => api.post('/company', data),
+  create: (data: CompanyData) => api.post('/companies/create', data),
   update: (id: string | number, data: Partial<CompanyData>) =>
     api.patch(`/company/${id}`, data),
-  getCurrent: () => api.get('/company/me')
+  getCurrent: () => api.get('/company/me'),
+  getAll: () => api.get('/companies')
 }
 
 export default api
