@@ -25,7 +25,7 @@ class Company(Base):
     name = Column(String, index=True)
     industry = Column(String)
     region = Column(String)
-    sort_about = Column(String, nullable=True)
+    short_about = Column(String, nullable=True)
     long_about = Column(String, nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())

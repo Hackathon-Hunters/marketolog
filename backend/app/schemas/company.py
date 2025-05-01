@@ -19,7 +19,7 @@ class CompanyUpdate(CompanyBase):
     name: Optional[str] = None
     industry: Optional[str] = None
     region: Optional[str] = None
-    sort_about: Optional[str] = None
+    short_about: Optional[str] = None
     long_about: Optional[str] = None
     brand_colors: Optional[str] = None
     brand_font: Optional[str] = None
