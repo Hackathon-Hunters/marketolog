@@ -26,6 +26,8 @@ venv
 .venv
 .env
 .env.gpt
+.venv
+.env
 .venv/
 .venv
 

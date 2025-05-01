@@ -4,6 +4,8 @@ import subprocess
 import os
 from contextlib import asynccontextmanager
 
+from backend.app.database import engine, Base
+from backend.app.routers import auth, company, chatgpt_api, create_post
 from .database import engine, Base
 from .routers import auth, company
 
@@ -41,6 +43,7 @@ app.include_router(auth.router)
 app.include_router(company.router)
 app.include_router(chatgpt_api.router)
 app.include_router(create_post.router)
+app.include_router(company.router)
 
 @app.get("/")
 async def root():
