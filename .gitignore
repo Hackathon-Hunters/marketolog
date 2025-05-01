@@ -20,7 +20,7 @@ var/
 .installed.cfg
 *.egg
 venv/
-.venv/
+.venv
 .env
 
 # Database
