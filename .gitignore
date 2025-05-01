@@ -21,6 +21,8 @@ var/
 venv
 .venv
 .env
+.venv/
+.venv
 
 # Database
 *.db
