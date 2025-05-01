@@ -38,7 +38,7 @@ const onSubmit = handleSubmit(async (values) => {
       password: values.password
     })
     localStorage.setItem('token', response.data.access_token)
-    router.push('/brief')
+    router.push('/main')
   } catch (err) {
     console.error('Login error:', err)
   }

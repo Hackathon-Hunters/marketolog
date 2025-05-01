@@ -28,6 +28,8 @@ import {
   LogOut,
   Sparkles,
 } from 'lucide-vue-next'
+import { userStore } from '../store';
+import router from '../router';
 
 const props = defineProps<{
   user: {
@@ -38,6 +40,12 @@ const props = defineProps<{
 }>()
 
 const { isMobile } = useSidebar()
+
+const logout = () => {
+  localStorage.removeItem('token')
+  userStore.clearUser()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -105,7 +113,7 @@ const { isMobile } = useSidebar()
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem @click="logout">
             <LogOut />
             Log out
           </DropdownMenuItem>

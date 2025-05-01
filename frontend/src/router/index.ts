@@ -17,11 +17,23 @@ const routes = [
     component: () => import('../views/LoginView.vue')
   },
   {
-    path: '/brief',
-    name: 'Brief',
-    component: () => import('../views/BriefView.vue'),
-    meta: { requiresAuth: true }
-  }
+    path: '/main',
+    name: 'Main',
+    component: () => import('../views/MainView.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: () => import('../views/DashboardView.vue')
+      },
+      {
+        path: 'info',
+        name: 'Info',
+        component: () => import('../views/CompanyInfoView.vue')
+      }
+    ]
+  },
 ]
 
 const router = createRouter({
