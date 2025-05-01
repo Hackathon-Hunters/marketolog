@@ -79,4 +79,3 @@ class Post(Base):
     
     # Связи
     user = relationship("User", back_populates="posts") 
-
