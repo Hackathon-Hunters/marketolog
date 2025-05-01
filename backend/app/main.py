@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import engine, Base
-from .routers import auth
+from .routers import auth, company
 
 Base.metadata.create_all(bind=engine)
 
@@ -17,7 +17,12 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(company.router)
 
 @app.get("/")
 async def root():
-    return {"message": "AI-маркетолог API"} 
+    return {"message": "AI-маркетолог API"}
+
+# @app.post("/create_company")
+# async def create_company(company: Company):
+

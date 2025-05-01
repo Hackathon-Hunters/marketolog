@@ -21,6 +21,8 @@ var/
 *.egg
 venv/
 .env
+.venv/
+.venv
 
 # Database
 *.db
