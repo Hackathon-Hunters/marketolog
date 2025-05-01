@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ..database import get_db
 from ..models.models import User
@@ -21,7 +21,9 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 def authenticate_user(db: Session, email: str, password: str):
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).options(
+        joinedload(User.company)
+    ).filter(User.email == email).first()
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -52,7 +54,11 @@ async def get_current_user(db: Session = Depends(get_db), token: str = Depends(o
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    user = db.query(User).filter(User.email == token_data.email).first()
+    
+    user = db.query(User).options(
+        joinedload(User.company)
+    ).filter(User.email == token_data.email).first()
+    
     if user is None:
         raise credentials_exception
     return user

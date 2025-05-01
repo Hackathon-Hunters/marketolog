@@ -58,6 +58,9 @@ class IdeaGenerationRequest(BaseModel):
     model: str = Field(default="gpt-3.5-turbo", description="Модель GPT")
     temperature: float = Field(default=0.7, ge=0, le=2, description="Температура генерации")
 
+class PostGenerationRequest(BaseModel):
+    prompt: str = Field(..., description="Краткое описание/промпт для генерации поста")
+
 class IdeaResponse(BaseModel):
     title: str = Field(..., description="Название идеи")
     description: str = Field(..., description="Описание идеи")
@@ -66,11 +69,21 @@ class IdeaResponse(BaseModel):
     image_prompt: str = Field(..., description="Промпт для генерации изображения")
     image_base64: Optional[str] = Field(None, description="Изображение в формате base64")
 
+class PostResponse(BaseModel):
+    title: str = Field(..., description="Заголовок поста")
+    description: str = Field(..., description="Содержание поста")
+    hashtags: List[str] = Field(..., description="Хештеги для соц. сетей")
+    image_base64: Optional[str] = Field(None, description="Изображение в формате base64")
+
 class IdeasGenerationResponse(BaseModel):
     ideas: List[IdeaResponse] = Field(..., description="Список идей")
 
-def log_request(user_id: int, request_data: dict):
+def log_request(user_id: int, request_data: Any):
     """Логирование входящего запроса"""
+    # Преобразуем Pydantic модель в словарь, если она передана
+    if hasattr(request_data, "dict"):
+        request_data = request_data.dict()
+        
     log_data = {
         "timestamp": datetime.now().isoformat(),
         "user_id": user_id,
@@ -78,8 +91,12 @@ def log_request(user_id: int, request_data: dict):
     }
     logger.info(f"ChatGPT Request: {json.dumps(log_data, ensure_ascii=False)}")
 
-def log_response(user_id: int, response_data: dict):
+def log_response(user_id: int, response_data: Any):
     """Логирование ответа"""
+    # Преобразуем Pydantic модель в словарь, если она передана
+    if hasattr(response_data, "dict"):
+        response_data = response_data.dict()
+        
     log_data = {
         "timestamp": datetime.now().isoformat(),
         "user_id": user_id,
@@ -103,7 +120,7 @@ async def generate_image(prompt: str) -> str:
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
-            size="720x720",
+            size="1024x1024",
             quality="standard",
             n=1,
         )
@@ -119,23 +136,22 @@ async def generate_image(prompt: str) -> str:
 
 @router.post("/generate-ideas", response_model=IdeasGenerationResponse)
 async def generate_ideas(
-    idea_request: IdeaGenerationRequest,
     current_user: UserModel = Depends(get_current_active_user)
 ):
+    company = current_user.company
     try:
         # Логируем входящий запрос
-        log_request(current_user.id, idea_request.dict())
         
         # Создаем промпт для генерации идей
         prompt_template = f"""
         Ты - профессиональный бизнес-консультант по маркетингу. 
         
-        Компания: {idea_request.company_name}
-        Род деятельности: {idea_request.business_type}
-        Регион: {idea_request.region}
-        Язык: {idea_request.language}
+        Компания: {company.name}
+        Род деятельности: {company.industry}
+        Регион: {company.region}
+        Язык: Русский
         
-        Сгенерируй ТОП-3 маркетинговые идеи для этой компании, которые помогут повысить узнаваемость бренда и привлечь новых клиентов.
+        Сгенерируй ТОП-3 маркетинговые идеи для постов в соц. сетях этой компании, которые помогут повысить узнаваемость бренда и привлечь новых клиентов.
         
         Для каждой идеи также:
         1. Добавь 5-7 релевантных хештегов для соц. сетей
@@ -160,9 +176,9 @@ async def generate_ideas(
         
         # Отправляем запрос к ChatGPT
         response = client.chat.completions.create(
-            model=idea_request.model,
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt_template}],
-            temperature=idea_request.temperature,
+            temperature=0.7,
             response_format={"type": "json_object"}
         )
         
@@ -170,16 +186,105 @@ async def generate_ideas(
         response_content = response.choices[0].message.content
         ideas_data = json.loads(response_content)
         
-        # Генерируем изображения для каждой идеи
-        for idea in ideas_data["ideas"]:
-            image_base64 = await generate_image(idea["image_prompt"])
-            idea["image_base64"] = image_base64
+        # # Генерируем изображения для каждой идеи
+        # for idea in ideas_data["ideas"]:
+        #     image_base64 = await generate_image(idea["image_prompt"])
+        #     print(image_base64)
+        #     idea["image_base64"] = image_base64
         
         # Формируем структурированный ответ
         response_data = IdeasGenerationResponse(**ideas_data)
         
         # Логируем успешный ответ
         log_response(current_user.id, ideas_data)
+        
+        return response_data
+        
+    except json.JSONDecodeError as e:
+        log_error(current_user.id, e)
+        raise HTTPException(
+            status_code=500,
+            detail="Не удалось распарсить ответ от API в формате JSON"
+        )
+    except OpenAIError as e:
+        # Логируем ошибку API
+        log_error(current_user.id, e)
+        error_message = str(e)
+        
+        # Обработка различных типов ошибок
+        if "API key" in error_message:
+            raise HTTPException(
+                status_code=500,
+                detail="Invalid OpenAI API key. Please check your .env.gpt file"
+            )
+        elif "insufficient_quota" in error_message:
+            raise HTTPException(
+                status_code=429,
+                detail="OpenAI API quota exceeded. Please check your billing details at https://platform.openai.com/account/billing"
+            )
+        elif "rate_limit" in error_message:
+            raise HTTPException(
+                status_code=429,
+                detail="Rate limit exceeded. Please try again later"
+            )
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        # Логируем неожиданные ошибки
+        log_error(current_user.id, e)
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
+
+@router.post("/generate-post", response_model=PostResponse)
+async def generate_post(
+    request: PostGenerationRequest,
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    try:
+        # Логируем входящий запрос
+        log_request(current_user.id, request)
+        
+        # Создаем промпт для генерации поста
+        prompt_template = f"""
+        Ты - профессиональный копирайтер и маркетолог.
+        
+        На основе этого промпта: "{request.prompt}"
+        
+        Создай привлекательный пост для социальных сетей, который привлечет внимание аудитории.
+        
+        Твой ответ должен быть ТОЛЬКО в формате JSON со следующей структурой:
+        {{
+            "title": "Привлекательный заголовок поста",
+            "description": "Детальное содержание поста в несколько абзацев",
+            "hashtags": ["#хештег1", "#хештег2", "#хештег3", ...],
+            "image_prompt": "Детальное описание изображения, которое будет иллюстрировать пост, для генерации через DALL-E"
+        }}
+        
+        НЕ ДОБАВЛЯЙ никаких пояснений или дополнительного текста вне этой JSON структуры.
+        """
+        
+        # Отправляем запрос к ChatGPT
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt_template}],
+            temperature=0.7,
+            response_format={"type": "json_object"}
+        )
+        
+        # Получаем ответ и преобразуем его в JSON
+        response_content = response.choices[0].message.content
+        post_data = json.loads(response_content)
+        
+        # Генерируем изображение на основе prompt
+        image_base64 = await generate_image(post_data["image_prompt"])
+        post_data["image_base64"] = image_base64
+        
+        # Удаляем поле image_prompt так как оно не требуется в ответе
+        post_data.pop("image_prompt", None)
+        
+        # Формируем структурированный ответ
+        response_data = PostResponse(**post_data)
+        
+        # Логируем успешный ответ
+        log_response(current_user.id, post_data)
         
         return response_data
         

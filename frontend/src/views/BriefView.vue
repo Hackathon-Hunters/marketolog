@@ -41,6 +41,9 @@ const fetchCurrentUser = async () => {
   
   try {
     const response = await authApi.getCurrentUser()
+    if(response.data.company) {
+
+    }
     user.value = response.data
   } catch (err) {
     error.value = 'Ошибка при загрузке данных пользователя'
