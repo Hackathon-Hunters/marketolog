@@ -1,17 +1,25 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <div class="rounded-lg border bg-slate-50 p-8 shadow-md">
-      <h1 class="mb-6 text-2xl font-bold">Заполнение брифа компании</h1>
-      
-      <div v-if="isLoading" class="flex justify-center py-4">
-        <p>Загрузка данных...</p>
-      </div>
-      
-      <div v-else>
-        <p class="text-lg mb-8">Добро пожаловать, {{ user.email }}! Заполните информацию о вашей компании.</p>
-        <Button @click="logout" variant="outline" class="mt-4">Выйти из аккаунта</Button>
-      </div>
-    </div>
+  <div class="flex min-h-screen">
+    <SidebarProvider>
+      <AppSidebar />
+      <main class="flex-1">
+        <SidebarTrigger />
+        <div class="container mx-auto px-4 py-8">
+          <div class="rounded-lg border bg-slate-50 p-8 shadow-md">
+            <h1 class="mb-6 text-2xl font-bold">Заполнение брифа компании</h1>
+            
+            <div v-if="isLoading" class="flex justify-center py-4">
+              <p>Загрузка данных...</p>
+            </div>
+            
+            <div v-else>
+              <p class="text-lg mb-8">Добро пожаловать, {{ user.email }}! Заполните информацию о вашей компании.</p>
+              <Button @click="logout" variant="outline" class="mt-4">Выйти из аккаунта</Button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </SidebarProvider>
   </div>
 </template>
 
@@ -20,6 +28,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '../services/api'
 import { Button } from '../components/ui/button'
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import AppSidebar from "@/components/AppSidebar.vue";
 
 const router = useRouter()
 const isLoading = ref(true)
@@ -52,6 +62,18 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.flex {
+  display: flex;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
 .brief-view {
   padding: 2rem;
 }

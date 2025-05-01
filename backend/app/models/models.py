@@ -27,13 +27,19 @@ class Company(Base):
     name = Column(String, index=True)
     industry = Column(String)
     region = Column(String)
+    short_about = Column(String, nullable=True)
+    long_about = Column(String, nullable=True)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     brand_colors = Column(String, nullable=True)
     brand_font = Column(String, nullable=True)
     logo_url = Column(String, nullable=True)
     brand_book_url = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-
     owner = relationship("User", back_populates="company")
+    #social_accounts = relationship("SocialMediaAccount", back_populates="company")
+
+#
 
 class SocialMediaAccount(Base):
     __tablename__ = "social_media_accounts"
@@ -73,3 +79,4 @@ class Post(Base):
     
     # Связи
     user = relationship("User", back_populates="posts") 
+
