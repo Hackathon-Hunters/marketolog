@@ -14,7 +14,6 @@ from .routers import auth, company
 from backend.app.database import engine, Base
 from backend.app.routers import auth, chatgpt_api, create_post
 
-Base.metadata.create_all(bind=engine)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
