@@ -18,7 +18,7 @@ router = APIRouter(
     tags=["companies"],
 )
 
-@router.get("/", response_model=List[User])
+@router.get("/", response_model=List[Company])
 async def get_companies(
     skip: int = 0, 
     limit: int = 100, 
