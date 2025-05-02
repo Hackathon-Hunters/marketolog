@@ -25,7 +25,8 @@ async def get_companies(
     db: Session = Depends(get_db),
     user: UserModel = Depends(get_current_active_user)
     ):
-    companies = db.query(CompanyModel).offset(skip).limit(limit).all()
+    
+    companies = db.query(CompanyModel).filter(CompanyModel.user_id == user.id).offset(skip).limit(limit).all()
     return companies
 
 

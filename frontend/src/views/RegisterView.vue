@@ -99,7 +99,7 @@ const onSubmit = handleSubmit(async (values) => {
     })
     
     localStorage.setItem('token', response.data.token)
-    router.push('/brief')
+    router.push('/login')
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Ошибка при регистрации'
   } finally {

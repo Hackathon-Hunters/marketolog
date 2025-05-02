@@ -96,7 +96,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container mx-auto py-8">
+  <div class="container mx-auto">
     <div class="mb-6 flex justify-between items-center">
       <div>
         <h1 class="text-2xl font-bold">Список компаний</h1>

@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="hero-image">
-        <img src="/hero-image.svg" alt="AI Маркетолог" />
+        <img src="/bro.svg" alt="AI Маркетолог" />
       </div>
     </header>
 
@@ -71,7 +71,7 @@
       <p>Присоединяйтесь к тысячам бизнесов, которые уже используют AI для создания контента</p>
       <div class="actions">
         <router-link to="/register" class="btn primary">Регистрация</router-link>
-        <router-link to="/login" class="btn secondary">Вход</router-link>
+        <router-link to="/login" class="btn primary">Вход</router-link>
       </div>
     </section>
   </div>
