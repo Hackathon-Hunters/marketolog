@@ -42,9 +42,6 @@ const fetchCurrentUser = async () => {
   try {
     const response = await authApi.getCurrentUser()
     userStore.setUser(response.data)
-    if(response.data.company) {
-      // Логика для обработки данных компании
-    }
   } catch (err) {
     error.value = 'Ошибка при загрузке данных пользователя'
     localStorage.removeItem('token')

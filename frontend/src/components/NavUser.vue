@@ -44,7 +44,7 @@ const { isMobile } = useSidebar()
 const logout = () => {
   localStorage.removeItem('token')
   userStore.clearUser()
-  router.push('/login')
+  router.push('/')
 }
 </script>
 

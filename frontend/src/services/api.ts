@@ -58,7 +58,8 @@ export const authApi = {
       }
     })
   },
-  getCurrentUser: () => api.get('/auth/me')
+  getCurrentUser: () => api.get('/auth/me'),
+  getRecommendations: () => api.post('/ai-requests/generate-ideas')
 }
 
 export const companyApi = {
@@ -66,7 +67,8 @@ export const companyApi = {
   update: (id: string | number, data: Partial<CompanyData>) =>
     api.patch(`/company/${id}`, data),
   getCurrent: () => api.get('/company/me'),
-  getAll: () => api.get('/companies')
+  getAll: () => api.get('/companies'),
+
 }
 
 export default api

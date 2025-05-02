@@ -20,6 +20,7 @@ const routes = [
     path: '/main',
     name: 'Main',
     component: () => import('../views/MainView.vue'),
+    redirect: '/main/dashboard',
     meta: { requiresAuth: true },
     children: [
       {
@@ -31,6 +32,11 @@ const routes = [
         path: 'info',
         name: 'Info',
         component: () => import('../views/CompanyInfoView.vue')
+      },
+      {
+        path: 'publication',
+        name: 'publication',
+        component: () => import('../views/PublicationView.vue')
       }
     ]
   },
