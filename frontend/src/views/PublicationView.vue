@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Button } from '../components/ui/button'
 import { Textarea } from '../components/ui/textarea'
 import axios from 'axios'
@@ -13,6 +13,21 @@ const error = ref('')
 const generatedPost = ref<any>(null)
 const isPromptValid = ref(false)
 const copySuccess = ref(false)
+
+// Проверяем наличие предзагруженного поста из sessionStorage
+onMounted(() => {
+  const storedPost = sessionStorage.getItem('generatedPost')
+  if (storedPost) {
+    try {
+      generatedPost.value = JSON.parse(storedPost)
+      // Очищаем sessionStorage после использования
+      sessionStorage.removeItem('generatedPost')
+    } catch (err) {
+      console.error('Ошибка при парсинге сохраненного поста:', err)
+      sessionStorage.removeItem('generatedPost')
+    }
+  }
+})
 
 const validatePrompt = () => {
   isPromptValid.value = prompt.value.length >= 10

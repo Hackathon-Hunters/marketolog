@@ -59,7 +59,8 @@ export const authApi = {
     })
   },
   getCurrentUser: () => api.get('/auth/me'),
-  getRecommendations: () => api.post('/ai-requests/generate-ideas')
+  getRecommendations: () => api.post('/ai-requests/generate-ideas'),
+  generatePost: (prompt: string) => api.post('/ai-requests/generate-post', { prompt })
 }
 
 export const companyApi = {
