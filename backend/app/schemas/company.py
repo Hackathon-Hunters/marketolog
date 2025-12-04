@@ -11,11 +11,13 @@ class CompanyBase(BaseModel):
     brand_font: Optional[str] = None
     logo_url: Optional[str] = None
     brand_book_url: Optional[str] = None
+    telegram_bot_token: Optional[str] = None
+    telegram_chat_id: Optional[str] = None
 
 class CompanyCreate(CompanyBase):
     pass
 
-class CompanyUpdate(CompanyBase):
+class CompanyUpdate(BaseModel):
     name: Optional[str] = None
     industry: Optional[str] = None
     region: Optional[str] = None
@@ -25,6 +27,15 @@ class CompanyUpdate(CompanyBase):
     brand_font: Optional[str] = None
     logo_url: Optional[str] = None
     brand_book_url: Optional[str] = None
+    telegram_bot_token: Optional[str] = None
+    telegram_chat_id: Optional[str] = None
 
 class Company(CompanyBase):
-    pass
+    id: int
+    
+    class Config:
+        from_attributes = True
+
+class TelegramSettings(BaseModel):
+    telegram_bot_token: Optional[str] = None
+    telegram_chat_id: Optional[str] = None

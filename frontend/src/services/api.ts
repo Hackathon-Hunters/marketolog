@@ -66,10 +66,31 @@ export const authApi = {
 export const companyApi = {
   create: (data: CompanyData) => api.post('/companies/create', data),
   update: (id: string | number, data: Partial<CompanyData>) =>
-    api.patch(`/company/${id}`, data),
+    api.put(`/companies/${id}`, data),
   getCurrent: () => api.get('/company/me'),
   getAll: () => api.get('/companies'),
+  getById: (id: string | number) => api.get(`/companies/${id}`),
+}
 
+interface TelegramSettings {
+  telegram_bot_token?: string
+  telegram_chat_id?: string
+}
+
+interface SendPostData {
+  company_id: number
+  title?: string
+  description: string
+  hashtags?: string[]
+  image_base64?: string
+}
+
+export const telegramApi = {
+  getSettings: (companyId: number) => api.get(`/telegram/settings/${companyId}`),
+  updateSettings: (companyId: number, settings: TelegramSettings) => 
+    api.put(`/telegram/settings/${companyId}`, settings),
+  testConnection: (companyId: number) => api.post(`/telegram/test/${companyId}`),
+  sendPost: (data: SendPostData) => api.post('/telegram/send', data),
 }
 
 export default api

@@ -5,7 +5,7 @@ import os
 from contextlib import asynccontextmanager
 
 from .database import engine, Base
-from .routers import auth, company, chatgpt_api, create_post
+from .routers import auth, company, chatgpt_api, create_post, telegram
 
 # Удаляем создание таблиц через SQLAlchemy - теперь будем использовать миграции
 # Base.metadata.create_all(bind=engine)
@@ -38,6 +38,7 @@ app.include_router(auth.router)
 app.include_router(company.router)
 app.include_router(chatgpt_api.router)
 app.include_router(create_post.router)
+app.include_router(telegram.router)
 
 @app.get("/")
 async def root():

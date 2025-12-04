@@ -37,6 +37,16 @@ const routes = [
         path: 'publication',
         name: 'publication',
         component: () => import('../views/PublicationView.vue')
+      },
+      {
+        path: 'telegram/:companyId',
+        name: 'TelegramSettings',
+        component: () => import('../views/TelegramSettingsView.vue')
+      },
+      {
+        path: 'company/:id',
+        name: 'CompanyDetail',
+        component: () => import('../views/CompanyDetailView.vue')
       }
     ]
   },

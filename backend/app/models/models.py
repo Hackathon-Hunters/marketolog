@@ -35,6 +35,11 @@ class Company(Base):
     logo_url = Column(String, nullable=True)
     brand_book_url = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    
+    # Telegram интеграция
+    telegram_bot_token = Column(String, nullable=True)
+    telegram_chat_id = Column(String, nullable=True)
+    
     owner = relationship("User", back_populates="company")
     #social_accounts = relationship("SocialMediaAccount", back_populates="company")
 

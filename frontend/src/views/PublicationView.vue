@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button'
 import { Textarea } from '../components/ui/textarea'
 import axios from 'axios'
 import PublicationSkeleton from '../components/PublicationSkeleton.vue'
+import { telegramApi, companyApi } from '../services/api'
 
 const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -13,9 +14,70 @@ const error = ref('')
 const generatedPost = ref<any>(null)
 const isPromptValid = ref(false)
 const copySuccess = ref(false)
+const isSendingToTelegram = ref(false)
+const telegramSuccess = ref(false)
+const telegramError = ref('')
+const companies = ref<any[]>([])
+const selectedCompanyId = ref<number | null>(null)
+const isTelegramConfigured = ref(false)
+
+// Загрузка компаний и проверка настроек Telegram
+const loadCompanies = async () => {
+  try {
+    const response = await companyApi.getAll()
+    companies.value = response.data
+    
+    if (companies.value.length > 0) {
+      selectedCompanyId.value = companies.value[0].id
+      await checkTelegramSettings()
+    }
+  } catch (err) {
+    console.error('Ошибка при загрузке компаний:', err)
+  }
+}
+
+const checkTelegramSettings = async () => {
+  if (!selectedCompanyId.value) return
+  
+  try {
+    const response = await telegramApi.getSettings(selectedCompanyId.value)
+    isTelegramConfigured.value = response.data.is_configured
+  } catch (err) {
+    isTelegramConfigured.value = false
+  }
+}
+
+const sendToTelegram = async () => {
+  if (!generatedPost.value || !selectedCompanyId.value) return
+  
+  isSendingToTelegram.value = true
+  telegramError.value = ''
+  telegramSuccess.value = false
+  
+  try {
+    await telegramApi.sendPost({
+      company_id: selectedCompanyId.value,
+      title: generatedPost.value.title,
+      description: generatedPost.value.description,
+      hashtags: generatedPost.value.hashtags,
+      image_base64: generatedPost.value.image_base64
+    })
+    
+    telegramSuccess.value = true
+    setTimeout(() => {
+      telegramSuccess.value = false
+    }, 3000)
+  } catch (err: any) {
+    telegramError.value = err.response?.data?.detail || 'Ошибка при отправке в Telegram'
+  } finally {
+    isSendingToTelegram.value = false
+  }
+}
 
 // Проверяем наличие предзагруженного поста из sessionStorage
-onMounted(() => {
+onMounted(async () => {
+  await loadCompanies()
+  
   const storedPost = sessionStorage.getItem('generatedPost')
   if (storedPost) {
     try {
@@ -224,6 +286,62 @@ const downloadImage = (imageBase64: string) => {
             <Button size="sm">
               Сохранить публикацию
             </Button>
+          </div>
+        </div>
+        
+        <!-- Отправка в Telegram -->
+        <div class="border-t p-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.904-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.015.094.034.31.019.477z"/>
+              </svg>
+              <span class="font-medium">Отправить в Telegram</span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              <!-- Выбор компании если их несколько -->
+              <select 
+                v-if="companies.length > 1"
+                v-model="selectedCompanyId"
+                @change="checkTelegramSettings"
+                class="text-sm border rounded-md px-2 py-1.5 bg-white"
+              >
+                <option v-for="company in companies" :key="company.id" :value="company.id">
+                  {{ company.name }}
+                </option>
+              </select>
+              
+              <Button 
+                v-if="isTelegramConfigured"
+                size="sm"
+                :disabled="isSendingToTelegram"
+                @click="sendToTelegram"
+                :class="{ 'bg-green-600 hover:bg-green-700': telegramSuccess }"
+              >
+                <span v-if="isSendingToTelegram" class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                <svg v-else-if="telegramSuccess" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                {{ telegramSuccess ? 'Отправлено!' : isSendingToTelegram ? 'Отправка...' : 'Отправить' }}
+              </Button>
+              
+              <div v-else class="flex items-center gap-2">
+                <span class="text-sm text-amber-600">Настройте Telegram</span>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  @click="$router.push(`/main/telegram/${selectedCompanyId}`)"
+                >
+                  Настроить
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Ошибка Telegram -->
+          <div v-if="telegramError" class="mt-3 rounded-md bg-red-50 p-2 text-sm text-red-600">
+            {{ telegramError }}
           </div>
         </div>
       </div>
